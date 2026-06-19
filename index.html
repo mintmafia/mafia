@@ -184,7 +184,7 @@ select.fsel{width:auto;height:34px;font-size:12px;background:var(--paper2);borde
 .pres-tab.on{background:#3A2818;border-color:#C9A84C;color:#C9A84C;font-weight:600}
 .pres-selectors{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;flex-shrink:0}
 .pres-selectors select{height:34px;background:#1E1A14;border:1px solid #3C3428;color:#F5F0E8;font-size:12px;padding:0 12px;border-radius:6px;-webkit-appearance:none;width:auto;flex:0 1 auto}
-.pres-list{display:flex;flex-direction:column;gap:6px;flex:1;overflow:hidden}
+.pres-list{display:flex;flex-direction:column;gap:6px;flex:1;min-height:0;overflow:hidden}
 .pres-row{display:flex;align-items:center;gap:14px;padding:12px 18px;background:rgba(245,240,232,.04);border:1px solid rgba(200,192,176,.15);border-radius:10px}
 .pres-row.gold{background:linear-gradient(90deg,rgba(201,168,76,.18) 0%,rgba(201,168,76,.04) 100%);border-color:rgba(201,168,76,.4)}
 .pres-row.silver{background:linear-gradient(90deg,rgba(180,178,169,.14) 0%,rgba(180,178,169,.03) 100%);border-color:rgba(180,178,169,.35)}
@@ -556,33 +556,60 @@ function renderPresentation(){
   const sorted=presentationStats();
   if(!sorted.length){overlay.appendChild(el("div",{c:"pres-empty"},tx("Нет данных")));document.body.appendChild(overlay);return;}
   const list=el("div",{c:"pres-list"});
-  // Calculate sizing: reserve ~120px for header+tabs+selectors, rest for rows
   const count=sorted.length;
-  const availH=window.innerHeight-140;
-  const rowH=Math.max(28,Math.min(52,Math.floor(availH/count)-6));
-  const isCompact=rowH<42;
-  const fontSize=isCompact?Math.max(12,Math.floor(rowH*0.42)):20;
-  const rankSize=isCompact?Math.max(13,Math.floor(rowH*0.48)):26;
-  const ptsSize=isCompact?Math.max(13,Math.floor(rowH*0.48)):26;
-  const padV=Math.max(3,Math.floor((rowH-fontSize*1.2)/2));
-  const gap=isCompact?Math.max(2,Math.floor((availH-rowH*count)/count)):6;
-  list.style.gap=gap+"px";
+
+  // Render placeholder rows first
+  const rows=[];
   sorted.forEach((p,i)=>{
     const rk=i===0?"gold":i===1?"silver":i===2?"bronze":"";
-    const row=el("div",{c:`pres-row${rk?" "+rk:""}`,s:`padding:${padV}px ${isCompact?10:18}px;gap:${isCompact?8:14}px`});
-    row.appendChild(el("div",{c:`pres-rank${rk?" "+rk:""}`,s:`font-size:${rankSize}px;min-width:${isCompact?24:38}px`},tx(i+1)));
+    const row=el("div",{c:`pres-row${rk?" "+rk:""}`});
+    row.appendChild(el("div",{c:`pres-rank${rk?" "+rk:""}`,s:"min-width:24px"},tx(i+1)));
     const mid=el("div",{c:"pres-mid"});
-    mid.appendChild(el("div",{c:"pres-name",s:`font-size:${fontSize}px`},tx(p.name)));
-    if(!isCompact){
-      const wpct=p.games?Math.round(p.wins/p.games*100):0;
-      mid.appendChild(el("div",{c:"pres-meta"},tx(`${p.games} игр · ${p.wins} побед · ${wpct}%`)));
-    }
+    const nameEl=el("div",{c:"pres-name"},tx(p.name));
+    mid.appendChild(nameEl);
+    const wpct=p.games?Math.round(p.wins/p.games*100):0;
+    const metaEl=el("div",{c:"pres-meta"},tx(`${p.games} игр · ${p.wins} побед · ${wpct}%`));
+    mid.appendChild(metaEl);
     row.appendChild(mid);
-    row.appendChild(el("div",{c:"pres-pts",s:`font-size:${ptsSize}px;min-width:${isCompact?50:70}px`},tx((p.pts>=0?"+":"")+p.pts.toFixed(1))));
+    row.appendChild(el("div",{c:"pres-pts"},tx((p.pts>=0?"+":"")+p.pts.toFixed(1))));
     list.appendChild(row);
+    rows.push({row,nameEl,metaEl});
   });
   overlay.appendChild(list);
   document.body.appendChild(overlay);
+
+  // Now measure and scale
+  requestAnimationFrame(()=>{
+    const listRect=list.getBoundingClientRect();
+    const availH=listRect.height;
+    const totalRowH=rows.reduce((sum,r)=>sum+r.row.getBoundingClientRect().height,0);
+    const totalGaps=(count-1)*6;
+
+    if(totalRowH+totalGaps>availH&&count>0){
+      // Need to shrink — calculate target row height
+      const targetRowH=Math.floor((availH-count*2)/count);
+      const isCompact=targetRowH<46;
+      const isTiny=targetRowH<32;
+      const fs=isTiny?Math.max(11,Math.floor(targetRowH*0.4)):isCompact?Math.max(13,Math.floor(targetRowH*0.38)):20;
+      const rankFs=isTiny?Math.max(11,Math.floor(targetRowH*0.42)):isCompact?Math.max(14,Math.floor(targetRowH*0.42)):26;
+      const ptsFs=isTiny?Math.max(11,Math.floor(targetRowH*0.42)):isCompact?Math.max(14,Math.floor(targetRowH*0.42)):26;
+      const padV=Math.max(2,Math.floor(targetRowH*0.1));
+      const gap=Math.max(1,Math.min(6,Math.floor((availH-targetRowH*count)/(count-1||1))));
+
+      list.style.gap=gap+"px";
+      rows.forEach(r=>{
+        r.row.style.padding=`${padV}px ${isCompact?8:18}px`;
+        r.row.style.gap=isCompact?"6px":"14px";
+        r.row.style.borderRadius=isCompact?"6px":"10px";
+        r.nameEl.style.fontSize=fs+"px";
+        r.row.querySelector(".pres-rank").style.fontSize=rankFs+"px";
+        r.row.querySelector(".pres-pts").style.fontSize=ptsFs+"px";
+        r.row.querySelector(".pres-pts").style.minWidth=isCompact?"44px":"70px";
+        if(isCompact)r.metaEl.style.display="none";
+      });
+    }
+  });
+  return;
 }
 
 function viewLB(){
