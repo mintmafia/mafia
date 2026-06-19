@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1C1410">
+<title>Mafia Tracker</title>
+<style>
+:root{
+  --ink:#1C1410;--paper:#F5F0E8;--paper2:#EDE8DC;--paper3:#E3DDD0;
+  --red:#8B1A1A;--red2:#B22222;--red-soft:#F0E0DC;--red-border:#E0B0A8;
+  --gold:#8B6914;--gold2:#C9A84C;--gold-light:#F5EDD0;
+  --muted:#7A7060;--muted2:#9A9080;
+  --border:#C8C0B0;--border2:#D8D0C0;
+  --green:#2D5A27;--green-soft:#E8F0E5;
+  --blue:#1A4A7A;--blue-soft:#E0ECF8;
+  --r:8px;--rb:14px;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#1C1410}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--ink);font-size:14px;line-height:1.5}
+#app{height:100%;display:flex;flex-direction:column;background:var(--paper)}
+
+.hdr{background:var(--ink);padding:calc(10px + var(--safe-top)) 14px 10px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.logo{font-size:18px;font-weight:700;color:#F5F0E8;flex:1}
+.logo em{color:#C0392B;font-style:normal}
+.season-sw{display:flex;align-items:center;border:1px solid #3C3428;border-radius:6px;overflow:hidden}
+.season-sw button{background:transparent;border:none;color:#9A9080;cursor:pointer;padding:6px 11px;font-size:17px;line-height:1;min-width:36px;touch-action:manipulation}
+.season-sw button:active{background:#2C2418}
+.s-name{padding:6px 10px;font-size:12px;font-weight:600;color:#F5F0E8;border-left:1px solid #3C3428;border-right:1px solid #3C3428;min-width:80px;text-align:center}
+
+.scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.content{padding:14px 14px calc(20px + var(--safe-bottom))}
+
+.bnav{background:var(--ink);border-top:1px solid #2C2418;display:flex;padding-bottom:var(--safe-bottom);flex-shrink:0}
+.bnav button{flex:1;background:none;border:none;color:#5A5040;padding:9px 2px 7px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9px;letter-spacing:.04em;text-transform:uppercase;touch-action:manipulation;line-height:1}
+.bnav button.act{color:#C8C0B0}
+.bnav button .ic{font-size:19px;line-height:1}
+.bnav button.act .ic{color:#C0392B}
+
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.metric{background:var(--paper2);border:1px solid var(--border2);border-radius:var(--r);padding:10px 12px}
+.metric .v{font-size:24px;font-weight:700;line-height:1;color:var(--ink)}
+.metric .l{font-size:9px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-top:3px}
+.metric.flt{cursor:pointer;border-color:var(--red);background:var(--red-soft)}
+.metric.flt .v{font-size:11px;color:var(--red);line-height:1.4}
+.metric.flt .l{color:var(--red)}
+
+.lb-item{display:flex;align-items:center;gap:10px;padding:11px 12px;background:var(--paper);border:1px solid var(--border2);border-radius:var(--r);margin-bottom:6px;cursor:pointer;touch-action:manipulation}
+.lb-item:active{background:var(--paper2)}
+.lb-rank{font-size:17px;font-weight:700;min-width:22px;text-align:center;color:var(--border)}
+.lb-rank.r1{color:#C9A84C}.lb-rank.r2{color:var(--muted)}.lb-rank.r3{color:#A0522D}
+.av{width:36px;height:36px;border-radius:50%;background:var(--red-soft);border:1px solid var(--red-border);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--red);flex-shrink:0}
+.av.lg{width:44px;height:44px;font-size:18px}
+.lb-mid{flex:1;min-width:0}
+.lb-name{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-sub{font-size:11px;color:var(--muted);display:flex;gap:5px;flex-wrap:wrap;margin-top:2px;align-items:center}
+.bar-t{height:3px;background:var(--paper3);border-radius:2px;margin-top:6px;overflow:hidden}
+.bar-f{height:100%;border-radius:2px}
+.pts-big{font-size:22px;font-weight:700;color:var(--gold);min-width:50px;text-align:right;flex-shrink:0;line-height:1}
+.pts-lbl{font-size:9px;color:var(--muted);text-align:right;letter-spacing:.05em;margin-top:2px}
+.wpct-col{text-align:center;flex-shrink:0;min-width:38px}
+.wpct-val{font-size:13px;font-weight:600}
+.wpct-lbl{font-size:9px;color:var(--muted);letter-spacing:.04em}
+
+.rb{display:inline-flex;align-items:center;font-size:10px;padding:2px 7px;border-radius:3px;font-weight:600;white-space:nowrap}
+.slbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:16px 0 8px;display:flex;align-items:center;gap:8px}
+.slbl::after{content:'';flex:1;height:1px;background:var(--border2)}
+
+.hc{background:var(--paper);border:1px solid var(--border2);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.hc-hdr{background:var(--paper2);padding:9px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border2)}
+.hc-tag{font-size:11px;font-weight:600;color:var(--red);letter-spacing:.05em;text-transform:uppercase}
+.hc-date{font-size:11px;color:var(--muted)}
+.hc-avs{padding:8px 12px;display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--border2)}
+.av-sm{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.name-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px 3px 4px;border-radius:14px;font-size:11px;font-weight:500;line-height:1.3;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.name-chip .nc-dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+.hc-row{display:flex;align-items:center;gap:8px;padding:8px 12px;flex-wrap:wrap}
+
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.field label{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600}
+input[type=text],input[type=number],select,textarea{height:42px;padding:0 12px;border:1px solid var(--border);border-radius:var(--r);background:var(--paper);color:var(--ink);font-size:15px;width:100%;-webkit-appearance:none;appearance:none}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--red)}
+textarea{height:auto;padding:10px 12px}
+
+.ec{background:var(--paper);border:1px solid var(--border2);border-radius:var(--r);padding:12px;margin-bottom:8px}
+.ec-num{font-size:10px;color:var(--muted2);font-weight:600;letter-spacing:.05em;margin-bottom:8px}
+.ec-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ec-grid3{display:grid;grid-template-columns:1fr 1fr 80px;gap:8px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;border-radius:var(--r);padding:11px 16px;font-size:14px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);touch-action:manipulation;font-weight:500;width:auto}
+.btn:active{opacity:.75}
+.btn.red{background:var(--red);border-color:var(--red);color:#F5F0E8}
+.btn.ghost{background:transparent;color:var(--muted)}
+.btn.ghost:active{background:var(--paper2)}
+.btn.danger{background:transparent;border-color:transparent;color:var(--red)}
+.btn.sm{padding:6px 11px;font-size:12px}
+.btn.full{width:100%;margin-top:4px}
+
+.pill{display:inline-flex;align-items:center;gap:4px;background:var(--paper2);border:1px solid var(--border2);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--muted)}
+.pill.red{background:var(--red-soft);border-color:var(--red-border);color:var(--red);cursor:pointer}
+
+.pcard{display:flex;align-items:center;gap:10px;padding:11px 12px;background:var(--paper);border:1px solid var(--border2);border-radius:var(--r);margin-bottom:6px}
+.pcard-mid{flex:1;min-width:0;cursor:pointer}
+
+.overlay{position:fixed;inset:0;background:rgba(28,20,16,.6);display:flex;align-items:flex-end;justify-content:center;z-index:200}
+.modal{background:var(--paper);border-radius:var(--rb) var(--rb) 0 0;padding:20px 16px calc(20px + var(--safe-bottom));width:100%;max-width:480px;max-height:85vh;overflow-y:auto}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:10px}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.5}
+
+.tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:14px;padding-bottom:2px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{background:var(--paper2);border:1px solid var(--border2);border-radius:20px;padding:6px 13px;font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap;touch-action:manipulation;font-weight:500}
+.tab.on{background:var(--red-soft);border-color:var(--red-border);color:var(--red);font-weight:600}
+
+.chart-box{background:var(--paper);border:1px solid var(--border2);border-radius:var(--r);padding:12px;margin-bottom:12px;overflow:hidden}
+.chart-bar-row{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.chart-bar-row:last-child{margin-bottom:0}
+.chart-label{font-size:10px;color:var(--ink);min-width:110px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;flex-shrink:0}
+.chart-bar-wrap{flex:1;height:18px;background:var(--paper3);border-radius:3px;overflow:hidden}
+.chart-bar-inner{height:100%;border-radius:3px}
+.chart-bar-val{font-size:10px;color:var(--muted);flex-shrink:0;min-width:34px;padding-left:4px}
+
+.role-row{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--border2);border-radius:var(--r);margin-bottom:5px;background:var(--paper)}
+.season-row{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--border2);border-radius:var(--r);margin-bottom:5px;background:var(--paper)}
+.season-row.active-s{border-color:var(--gold2);background:var(--gold-light)}
+.sn-inp{flex:1;height:30px;font-size:15px;font-weight:600;border:none;background:transparent;padding:0;color:var(--ink)}
+.sn-inp:focus{outline:none;border-bottom:1px solid var(--border)}
+
+/* RULES */
+.rules-section{background:var(--paper);border:1px solid var(--border2);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.rules-section-hdr{background:var(--paper2);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;touch-action:manipulation;border-bottom:1px solid var(--border2)}
+.rules-section-hdr.collapsed{border-bottom:none}
+.rules-section-title{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.rules-section-body{padding:12px 14px}
+.role-card{padding:10px 0;border-bottom:1px solid var(--border2)}
+.role-card:last-child{border-bottom:none}
+.role-card-name{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.role-card-desc{font-size:12px;color:var(--muted);line-height:1.55}
+.pts-table{width:100%;font-size:12px;border-collapse:collapse;margin-top:8px}
+.pts-table td{padding:5px 8px;border-bottom:1px solid var(--border2)}
+.pts-table tr:last-child td{border-bottom:none}
+.pts-table td:last-child{text-align:right;font-weight:600;color:var(--gold)}
+.pts-table td:last-child.neg{color:var(--red)}
+.pts-table td:last-child.pos{color:var(--green)}
+.team-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
+.team-black{background:#1C14101A;color:#1C1410;border:1px solid #C8C0B0}
+.team-red{background:var(--red-soft);color:var(--red);border:1px solid var(--red-border)}
+.team-third{background:var(--gold-light);color:var(--gold);border:1px solid #D4B87A}
+
+.sync-bar{background:var(--ink);border-top:1px solid #2C2418;padding:9px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.sync-status{flex:1;font-size:11px;color:#6A6050;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sync-status.ok{color:#3A7A30}.sync-status.err{color:#C0392B}.sync-status.loading{color:#8B6914}
+.sync-btn{background:#1E1A14;border:1px solid #3C3428;border-radius:6px;color:#9A9080;font-size:11px;padding:6px 10px;cursor:pointer;white-space:nowrap;touch-action:manipulation;display:flex;align-items:center;gap:4px}
+.sync-btn:active{background:#2C2418;color:#F5F0E8}
+.sync-btn.primary{border-color:#8B6914;color:#C9A84C}
+.url-setup{background:var(--ink);padding:14px;border-top:1px solid #2C2418;flex-shrink:0}
+.url-setup input{height:36px;padding:0 10px;border:1px solid #3C3428;border-radius:6px;background:#1E1A14;color:#F5F0E8;font-size:12px;width:100%;margin-bottom:8px;-webkit-appearance:none}
+.url-setup input:focus{outline:none;border-color:#8B6914}
+.url-setup input::placeholder{color:#4A4438}
+
+.back{background:none;border:none;font-size:13px;color:var(--muted);cursor:pointer;padding:0;margin-bottom:14px;display:flex;align-items:center;gap:4px;touch-action:manipulation}
+.empty{text-align:center;padding:48px 16px;color:var(--muted2);font-size:16px;font-style:italic}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fb{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+select.fsel{width:auto;height:34px;font-size:12px;background:var(--paper2);border:1px solid var(--border2);color:var(--muted);padding:0 8px;border-radius:var(--r)}
+::-webkit-scrollbar{display:none}
+
+/* PRESENTATION MODE */
+.pres-overlay{position:fixed;inset:0;background:linear-gradient(180deg,#1C1410 0%,#2A1F18 100%);z-index:300;display:flex;flex-direction:column;padding:calc(20px + var(--safe-top)) 20px calc(20px + var(--safe-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch}
+.pres-hdr{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-shrink:0}
+.pres-title{flex:1;color:#F5F0E8;font-size:22px;font-weight:700;letter-spacing:.02em}
+.pres-title em{color:#C9A84C;font-style:normal;font-weight:600;font-size:13px;display:block;margin-top:2px;letter-spacing:.06em;text-transform:uppercase}
+.pres-close{background:#1E1A14;border:1px solid #3C3428;color:#9A9080;width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;touch-action:manipulation;flex-shrink:0}
+.pres-close:active{background:#2C2418}
+.pres-tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;flex-shrink:0}
+.pres-tab{background:#1E1A14;border:1px solid #3C3428;border-radius:20px;padding:8px 14px;font-size:12px;color:#9A9080;cursor:pointer;white-space:nowrap;touch-action:manipulation;font-weight:500}
+.pres-tab.on{background:#3A2818;border-color:#C9A84C;color:#C9A84C;font-weight:600}
+.pres-selectors{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;flex-shrink:0}
+.pres-selectors select{height:34px;background:#1E1A14;border:1px solid #3C3428;color:#F5F0E8;font-size:12px;padding:0 12px;border-radius:6px;-webkit-appearance:none;width:auto;flex:0 1 auto}
+.pres-list{display:flex;flex-direction:column;gap:6px}
+.pres-row{display:flex;align-items:center;gap:14px;padding:12px 18px;background:rgba(245,240,232,.04);border:1px solid rgba(200,192,176,.15);border-radius:10px}
+.pres-row.gold{background:linear-gradient(90deg,rgba(201,168,76,.18) 0%,rgba(201,168,76,.04) 100%);border-color:rgba(201,168,76,.4)}
+.pres-row.silver{background:linear-gradient(90deg,rgba(180,178,169,.14) 0%,rgba(180,178,169,.03) 100%);border-color:rgba(180,178,169,.35)}
+.pres-row.bronze{background:linear-gradient(90deg,rgba(160,82,45,.16) 0%,rgba(160,82,45,.04) 100%);border-color:rgba(160,82,45,.4)}
+.pres-rank{font-size:26px;font-weight:700;min-width:38px;text-align:center;color:#6A6050;line-height:1}
+.pres-rank.gold{color:#C9A84C}.pres-rank.silver{color:#B4B2A9}.pres-rank.bronze{color:#A0522D}
+.pres-mid{flex:1;min-width:0}
+.pres-name{font-size:20px;font-weight:600;color:#F5F0E8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pres-meta{font-size:11px;color:#7A7060;margin-top:2px}
+.pres-pts{font-size:26px;font-weight:700;color:#C9A84C;min-width:70px;text-align:right;line-height:1;flex-shrink:0}
+.pres-empty{color:#7A7060;text-align:center;padding:40px;font-style:italic}
+.lb-top-btn{position:absolute;top:0;right:0;background:var(--ink);color:#F5F0E8;border:none;border-radius:20px;padding:6px 14px;font-size:11px;font-weight:600;letter-spacing:.05em;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:5px}
+.lb-top-btn:active{background:#2C2418}
+.lb-header-row{position:relative;display:flex;align-items:center;justify-content:flex-end;margin-bottom:12px;min-height:32px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ── ROLES & RULES DATA ────────────────────────────────────────────────────────
+const TEAMS = {
+  mafia: { label:"Мафия 🖤", color:"#1C1410", badge:"team-black" },
+  peaceful: { label:"Мирные ❤️", color:"#8B1A1A", badge:"team-red" },
+  third: { label:"Третья сила", color:"#8B6914", badge:"team-third" }
+};
+
+const ALL_ROLES = [
+  // МАФИЯ
+  { id:"queen", name:"Королева Мафии", icon:"👑", team:"mafia",
+    desc:"Лидер мафии. Обнаруживает Шерифа ночью. Победа команды без лидера — 4 балла.",
+    pts:[["Победа в игре","5"],["Победа без лидера (посмертно)","4"],["Обнаружение Шерифа","1"],["Поражение","-1"]] },
+  { id:"mafia", name:"Мафия", icon:"🔫", team:"mafia",
+    desc:"Основная команда. Убивает ночью. Победа если мирных ≤ мафии.",
+    pts:[["Победа","4"],["Поражение","0"],["Лжешерифство","+1"]] },
+  { id:"intrigant", name:"Интриган", icon:"🎭", team:"mafia",
+    desc:"Играет за Мафию. Получает дополнительный балл за сыгранные улики.",
+    pts:[["Победа","4"],["Сыгранные улики","1"],["Поражение","0"],["Лжешерифство","+1"]] },
+  // МИРНЫЕ
+  { id:"sheriff", name:"Шериф", icon:"👮🏻‍♂️", team:"peaceful",
+    desc:"Лидер мирных. Каждую ночь проверяет одного игрока на принадлежность к Мафии. Маньяка определить не может.",
+    pts:[] },
+  { id:"doctor", name:"Доктор", icon:"👩🏼‍⚕️", team:"peaceful",
+    desc:"Каждую ночь лечит одного игрока. Нельзя лечить одного дважды подряд. Себя — только один раз за игру.",
+    pts:[] },
+  { id:"plague_doc", name:"Чумной доктор", icon:"🧙‍♂️", team:"peaceful",
+    desc:"Каждую ночь выбирает игрока — если того пытаются убить, спасает. Если нет — убивает своими лекарствами. Себя выбрать не может.",
+    pts:[] },
+  { id:"empress", name:"Шальная Императрица", icon:"💃", team:"peaceful",
+    desc:"Каждую ночь забирает к себе одного гостя — тот не может умереть ночью и уйти на следующем голосовании. Если убивают Императрицу — гость умирает вместе с ней.",
+    pts:[] },
+  { id:"suicide", name:"Самоубийца", icon:"😵", team:"peaceful",
+    desc:"После дневного голосования может открыть карту и уйти вместо выбранного жертвой игрока. Задача — спасти мирного.",
+    pts:[] },
+  { id:"judge", name:"Судья", icon:"⚖️", team:"peaceful",
+    desc:"Во время своей индивидуальной минуты может открыть карту и выбрать игрока, который немедленно покидает игру без голосования. После — играет как мирный.",
+    pts:[] },
+  { id:"avenger", name:"Мститель", icon:"🦸🏼‍♀️", team:"peaceful",
+    desc:"При выбывании забирает с собой одного игрока. Ночью — оба без последнего слова. Днём — оба оставляют завещание.",
+    pts:[] },
+  { id:"owl", name:"Сова", icon:"🦉", team:"peaceful",
+    desc:"Мирный, но видит Мафию ночью. Задача — помочь мирным не раскрываясь. Если Мафия убивает Сову — та показывает карту и Мафия делает ещё один выстрел.",
+    pts:[] },
+  { id:"husband", name:"Муж", icon:"💞", team:"peaceful",
+    desc:"Мирный, играет в паре с Женой. Просыпаются в первую ночь. Защищают друг друга на голосованиях. Не называют роли открыто.",
+    pts:[] },
+  { id:"wife", name:"Жена", icon:"💞", team:"peaceful",
+    desc:"Мирный, играет в паре с Мужем. Просыпаются в первую ночь. Защищают друг друга на голосованиях. Не называют роли открыто.",
+    pts:[] },
+  { id:"lawyer", name:"Адвокат", icon:"🧑🏽‍💼", team:"peaceful",
+    desc:"Каждую ночь даёт защиту одному игроку от выбывания на следующем голосовании. Работает только если против него проголосовало большинство.",
+    pts:[] },
+  { id:"thief", name:"Вор", icon:"🦝", team:"peaceful",
+    desc:"Каждую ночь забирает функционал одного игрока и переносит его на другого (или себя). Можно выбирать одного и того же человека дважды.",
+    pts:[] },
+  { id:"journalist", name:"Журналист", icon:"🗞️", team:"peaceful",
+    desc:"Каждую ночь сверяет двух игроков — в одной команде или нет. Не определяет цвет команд. Маньяк всегда в другой команде.",
+    pts:[] },
+  { id:"sapper", name:"Сапёр", icon:"💣", team:"peaceful",
+    desc:"При выбывании взрывается и забирает двух соседних игроков (слева и справа). Все трое без права завещания. Участвует от 14 человек.",
+    pts:[] },
+  { id:"immortal", name:"Бессмертный", icon:"🧛‍♂️", team:"peaceful",
+    desc:"Не может умереть ночью. Покинуть игру только через голосование.",
+    pts:[] },
+  { id:"mirror", name:"Зеркало", icon:"🪞", team:"peaceful",
+    desc:"Не может умереть ночью. Все ночные действия отражаются обратно. Если Мафия выбирает Зеркало — у неё 10 секунд решить, кто из них получил рикошет.",
+    pts:[] },
+  { id:"peaceful", name:"Мирный житель", icon:"👩🏻‍🏫", team:"peaceful",
+    desc:"Не просыпается ночью. Только интуиция, логика и ораторское искусство.",
+    pts:[] },
+  // ТРЕТЬЯ СИЛА
+  { id:"maniac", name:"Маньяк", icon:"🔪", team:"third",
+    desc:"Играет один против всех. Убивает каждую ночь. Победа — остаться последним живым или один на один с мирными.",
+    pts:[["Победа","7"],["Поражение в финале","0.5"],["Один на один с Мафией","0"],["Поражение вне финала","-1"]] },
+  { id:"werewolf", name:"Оборотень", icon:"🐺", team:"third",
+    desc:"Начинает как мирный. Когда вся Мафия выбыла — переходит на тёмную сторону и убивает. Может победить за любую команду.",
+    pts:[] },
+];
+
+const ROLE_NAMES = ALL_ROLES.map(r => r.name);
+const ROLE_MAP = {};
+ALL_ROLES.forEach(r => ROLE_MAP[r.name] = r);
+
+// Цвета по команде
+function roleColor(roleName) {
+  const r = ROLE_MAP[roleName];
+  if (!r) return "#6A6050";
+  if (r.team === "mafia") return "#8B1A1A";
+  if (r.team === "third") return "#8B6914";
+  return "#1B6B50";
+}
+function roleIcon(roleName) {
+  return ROLE_MAP[roleName]?.icon || "🃏";
+}
+
+// Авторасчёт баллов по роли и результату
+function calcPts(roleName, result, bonus) {
+  const r = ROLE_MAP[roleName];
+  bonus = parseFloat(bonus) || 0;
+  if (!r) return bonus;
+  const win = result === "Победа";
+  let base = 0;
+  // Мирные (17 ролей)
+  if (r.team === "peaceful") base = win ? 3 : 0;
+  // Мафия
+  else if (r.id === "queen") base = win ? 5 : -1;
+  else if (r.id === "mafia") base = win ? 4 : 0;
+  else if (r.id === "intrigant") base = win ? 4 : 0;
+  else if (r.id === "maniac") {
+    // Победа=7, Поражение в финале=0.5, вне финала=-1 — ведущий выбирает через бонус
+    base = win ? 7 : -1;
+  }
+  else if (r.team === "peaceful") base = win ? 3 : 0;
+  return parseFloat((base + bonus).toFixed(2));
+}
+
+const D_ROLES = ROLE_NAMES;
+const SEED = {
+  seasons:[{id:1,name:"Сезон 12",players:["Директор","Учителка","Нисиси","Турбопулька","Тихий омут","Богиня","Про100Лев","Парадокс","Я-Псих","Мать"],games:[
+    {id:"g1",date:"06.06.2025",round:1,entries:[
+      {player:"Учителка",role:"Маньяк",pts:7,bonus:0,result:"Победа"},
+      {player:"Турбопулька",role:"Мафия",pts:0,bonus:0,result:"Поражение"},
+      {player:"Нисиси",role:"Мирный житель",pts:0,bonus:0,result:"Поражение"},
+      {player:"Директор",role:"Шериф",pts:0,bonus:0,result:"Победа"},
+      {player:"Тихий омут",role:"Доктор",pts:0,bonus:2,result:"Победа"},
+      {player:"Богиня",role:"Мирный житель",pts:0,bonus:0,result:"Поражение"}
+    ]},
+    {id:"g2",date:"06.06.2025",round:2,entries:[
+      {player:"Учителка",role:"Мафия",pts:-1,bonus:0,result:"Поражение"},
+      {player:"Турбопулька",role:"Королева Мафии",pts:5,bonus:0,result:"Победа"},
+      {player:"Директор",role:"Шериф",pts:0,bonus:3,result:"Победа"},
+      {player:"Нисиси",role:"Мирный житель",pts:0,bonus:1,result:"Победа"},
+      {player:"Тихий омут",role:"Адвокат",pts:0,bonus:2,result:"Победа"},
+      {player:"Богиня",role:"Журналист",pts:0,bonus:2,result:"Победа"}
+    ]},
+    {id:"g3",date:"13.06.2025",round:1,entries:[
+      {player:"Директор",role:"Интриган",pts:5,bonus:1,result:"Победа"},
+      {player:"Богиня",role:"Мирный житель",pts:0,bonus:3,result:"Победа"},
+      {player:"Нисиси",role:"Доктор",pts:0,bonus:2,result:"Победа"},
+      {player:"Учителка",role:"Шериф",pts:0,bonus:4,result:"Победа"},
+      {player:"Парадокс",role:"Мирный житель",pts:0,bonus:0,result:"Поражение"},
+      {player:"Про100Лев",role:"Мафия",pts:4,bonus:0,result:"Победа"}
+    ]},
+  ]}],
+  roles:[...ROLE_NAMES],
+  activeSeason:1
+};
+
+let S={seasons:[],roles:[],activeSeason:0,view:"lb",selPlayer:null,filterDate:null,chartTab:"roleWin",editGame:null,modal:null,addEntries:null,rulesCollapsed:{},presMode:null,presScope:"season",presDate:null,presRound:null};
+
+// ▼▼▼ НАСТРОЙКА: вставь URL своего Google Apps Script сюда ▼▼▼
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbz7lkUQJfiXn_Ai0noUWvhpvZX8_txwCpb-Dty62YtBTlRMEUYycHFFcYpOje7NRxsp/exec";
+// ▲▲▲ После развёртывания Apps Script вставь URL выше ▲▲▲
+
+const IS_ADMIN = new URLSearchParams(window.location.search).has("admin");
+
+async function autoLoadFromSheets(){
+  const url = SHEETS_URL || localStorage.getItem("mft_sync_url") || "";
+  if(!url) return;
+  try{
+    const res=await fetch(url+"?t="+Date.now());
+    const json=await res.json();
+    if(json.ok&&json.data){
+      const d=json.data;
+      S.seasons=d.seasons||S.seasons;S.roles=d.roles||S.roles;S.activeSeason=d.activeSeason||S.activeSeason;
+      if(IS_ADMIN)save();
+      render();
+    }
+  }catch(e){}
+}
+
+function cs(){return S.seasons.find(s=>s.id===S.activeSeason)||S.seasons[0]||{id:0,name:"",players:[],games:[]};}
+function uid(){return Math.random().toString(36).slice(2,9);}
+function load(){
+  try{const d=JSON.parse(localStorage.getItem("mft_v9")||"null");
+    if(d){S.seasons=d.seasons;S.roles=d.roles||[...ROLE_NAMES];S.activeSeason=d.activeSeason;}
+    else{S.seasons=SEED.seasons;S.roles=SEED.roles;S.activeSeason=SEED.activeSeason;}
+  }catch(e){S.seasons=SEED.seasons;S.roles=SEED.roles;S.activeSeason=SEED.activeSeason;}
+}
+function save(){try{localStorage.setItem("mft_v9",JSON.stringify({seasons:S.seasons,roles:S.roles,activeSeason:S.activeSeason}));}catch(e){}}
+
+function getStats(fd){
+  const src=fd?cs().games.filter(g=>g.date===fd):cs().games;
+  const m={};
+  for(const g of src)for(const e of g.entries){
+    if(!m[e.player])m[e.player]={name:e.player,pts:0,games:0,wins:0,roles:{},rolePts:{},dates:new Set()};
+    const s=m[e.player];
+    const ep=parseFloat(e.pts)||0;
+    s.pts+=ep;s.games++;if(e.result==="Победа")s.wins++;
+    s.roles[e.role]=(s.roles[e.role]||0)+1;
+    s.rolePts[e.role]=(s.rolePts[e.role]||0)+ep;
+    s.dates.add(g.date);
+  }
+  Object.values(m).forEach(s=>{s.dates=[...s.dates].sort();s.wpct=s.games?Math.round(s.wins/s.games*100):0;});
+  return m;
+}
+
+function el(t,a,ch){
+  const e=document.createElement(t);
+  if(a)for(const[k,v]of Object.entries(a)){
+    if(k==="c")e.className=v;else if(k==="s")e.style.cssText=v;
+    else if(k.startsWith("on"))e.addEventListener(k.slice(2).toLowerCase(),v);
+    else e.setAttribute(k,v);
+  }
+  if(ch!=null)[ch].flat(9).forEach(c=>{if(c==null)return;e.appendChild(typeof c==="string"?document.createTextNode(c):c);});
+  return e;
+}
+function tx(s){return document.createTextNode(String(s));}
+
+function rb(roleName,sm){
+  const c=roleColor(roleName),e=document.createElement("span");e.className="rb";
+  e.style.cssText=`background:${c}18;color:${c};border:1px solid ${c}44;${sm?"font-size:9px;padding:1px 5px":""}`;
+  e.textContent=roleIcon(roleName)+" "+roleName;return e;
+}
+function av(name,lg){const e=el("div",{c:"av"+(lg?" lg":"")});e.textContent=(name||"?")[0].toUpperCase();return e;}
+function avSm(name,role){
+  const c=roleColor(role),e=el("div",{c:"av-sm"});
+  e.style.cssText=`background:${c}18;color:${c};border:1px solid ${c}44`;
+  e.textContent=(name||"?")[0].toUpperCase();e.title=`${name} · ${role}`;return e;
+}
+function nameChip(name,role){
+  const c=roleColor(role);
+  const trimmed=(name||"?").length>10?(name||"?").slice(0,10)+".":name;
+  const e=el("span",{c:"name-chip"});
+  e.style.cssText=`background:${c}14;color:${c};border:1px solid ${c}33`;
+  const dot=el("span",{c:"nc-dot"});
+  dot.style.cssText=`background:${c}33;color:${c}`;
+  dot.textContent=roleIcon(role);
+  e.appendChild(dot);
+  e.appendChild(document.createTextNode(trimmed));
+  e.title=`${name} · ${role}`;
+  return e;
+}
+function slbl(s){return el("div",{c:"slbl"},tx(s));}
+function showModal(inner){S.modal=inner;render();}
+function closeModal(){S.modal=null;render();}
+
+function barChart(data){
+  const max=Math.max(...data.map(d=>Math.abs(d.value)),1);
+  const box=el("div",{c:"chart-box"});
+  data.forEach(d=>{
+    const row=el("div",{c:"chart-bar-row"});
+    row.appendChild(el("div",{c:"chart-label"},tx(d.label)));
+    const bw=el("div",{c:"chart-bar-wrap"});
+    bw.appendChild(el("div",{c:"chart-bar-inner",s:`width:${Math.max(0,d.value/max*100).toFixed(1)}%;background:${d.color}aa;border-right:2px solid ${d.color}`}));
+    row.appendChild(bw);
+    row.appendChild(el("div",{c:"chart-bar-val"},tx(d.suffix?`${d.value}${d.suffix}`:d.value)));
+    box.appendChild(row);
+  });
+  return box;
+}
+
+function lineChart(points){
+  if(points.length<2)return el("div",{});
+  const W=320,H=110,PL=10,PR=10,PT=10,PB=28;
+  const vals=points.map(p=>p.value);
+  const minV=Math.min(...vals),maxV=Math.max(...vals),rng=maxV-minV||1;
+  const px=i=>PL+(i/(points.length-1))*(W-PL-PR);
+  const py=v=>PT+(maxV-v)/rng*(H-PT-PB);
+  let d=`M${px(0)},${py(vals[0])}`;
+  for(let i=1;i<points.length;i++){const cx=px(i-1)+(px(i)-px(i-1))*.5;d+=` C${cx},${py(vals[i-1])} ${cx},${py(vals[i])} ${px(i)},${py(vals[i])}`;}
+  const ns="http://www.w3.org/2000/svg";
+  const svg=document.createElementNS(ns,"svg");svg.setAttribute("viewBox",`0 0 ${W} ${H}`);svg.setAttribute("width","100%");svg.setAttribute("height",H);svg.style.display="block";
+  const ap=document.createElementNS(ns,"path");ap.setAttribute("d",d+` L${px(points.length-1)},${H-PB} L${PL},${H-PB} Z`);ap.setAttribute("fill","#8B691418");svg.appendChild(ap);
+  [0,.5,1].forEach(f=>{const y=PT+f*(H-PT-PB);const ln=document.createElementNS(ns,"line");ln.setAttribute("x1",PL);ln.setAttribute("x2",W-PR);ln.setAttribute("y1",y);ln.setAttribute("y2",y);ln.setAttribute("stroke","#E3DDD0");ln.setAttribute("stroke-width","1");svg.appendChild(ln);});
+  const lp=document.createElementNS(ns,"path");lp.setAttribute("d",d);lp.setAttribute("fill","none");lp.setAttribute("stroke","#8B6914");lp.setAttribute("stroke-width","2");lp.setAttribute("stroke-linecap","round");svg.appendChild(lp);
+  points.forEach((p,i)=>{
+    const cx=px(i),cy=py(vals[i]);
+    const ci=document.createElementNS(ns,"circle");ci.setAttribute("cx",cx);ci.setAttribute("cy",cy);ci.setAttribute("r","4");ci.setAttribute("fill","#8B6914");ci.setAttribute("stroke","#F5F0E8");ci.setAttribute("stroke-width","2");svg.appendChild(ci);
+    if(i===0||i===points.length-1||points.length<=6){const lt=document.createElementNS(ns,"text");lt.setAttribute("x",cx);lt.setAttribute("y",H-PB+14);lt.setAttribute("text-anchor","middle");lt.setAttribute("font-size","8");lt.setAttribute("fill","#7A7060");lt.textContent=p.label;svg.appendChild(lt);}
+    const vt=document.createElementNS(ns,"text");vt.setAttribute("x",cx);vt.setAttribute("y",cy-8);vt.setAttribute("text-anchor","middle");vt.setAttribute("font-size","9");vt.setAttribute("fill","#8B6914");vt.setAttribute("font-weight","600");vt.textContent=p.value;svg.appendChild(vt);
+  });
+  const box=el("div",{c:"chart-box"});box.appendChild(svg);return box;
+}
+
+// ── VIEWS ─────────────────────────────────────────────────────────────────────
+function presentationStats(){
+  const games=cs().games;
+  let src=games;
+  if(S.presScope==="game"){
+    if(S.presDate&&S.presRound)src=games.filter(g=>g.date===S.presDate&&g.round===parseInt(S.presRound));
+    else src=[];
+  }else if(S.presScope==="day"){
+    if(S.presDate)src=games.filter(g=>g.date===S.presDate);
+    else src=[];
+  }
+  const m={};
+  for(const g of src)for(const e of g.entries){
+    if(!m[e.player])m[e.player]={name:e.player,pts:0,games:0,wins:0};
+    const ep=parseFloat(e.pts)||0;
+    m[e.player].pts+=ep;m[e.player].games++;if(e.result==="Победа")m[e.player].wins++;
+  }
+  return Object.values(m).sort((a,b)=>b.pts-a.pts);
+}
+
+function renderPresentation(){
+  const old=document.getElementById("pres-overlay");if(old)old.remove();
+  if(!S.presMode)return;
+  const overlay=el("div",{c:"pres-overlay",id:"pres-overlay"});
+  const games=cs().games;
+  const dates=[...new Set(games.map(g=>g.date))].sort().reverse();
+
+  const hdr=el("div",{c:"pres-hdr"});
+  const titleBlock=el("div",{c:"pres-title"});
+  let titleTxt="Рейтинг",subTxt=cs().name;
+  if(S.presScope==="game"&&S.presDate&&S.presRound){titleTxt=`Игра №${S.presRound}`;subTxt=S.presDate;}
+  else if(S.presScope==="day"&&S.presDate){titleTxt="Итоги дня";subTxt=S.presDate;}
+  else if(S.presScope==="season"){titleTxt="Сезон";subTxt=cs().name.toUpperCase();}
+  titleBlock.appendChild(document.createTextNode(titleTxt));
+  titleBlock.appendChild(el("em",{},tx(subTxt)));
+  hdr.appendChild(titleBlock);
+  const closeBtn=el("button",{c:"pres-close",onclick:()=>{S.presMode=null;renderPresentation();}},tx("×"));
+  hdr.appendChild(closeBtn);
+  overlay.appendChild(hdr);
+
+  // Scope tabs
+  const tabs=el("div",{c:"pres-tabs"});
+  [["season","Весь сезон"],["day","День"],["game","Одна игра"]].forEach(([sc,lbl])=>{
+    const t=el("button",{c:`pres-tab${S.presScope===sc?" on":""}`,onclick:()=>{
+      S.presScope=sc;
+      if(sc!=="season"&&!S.presDate)S.presDate=dates[0]||null;
+      if(sc==="game"&&S.presDate){const rs=games.filter(g=>g.date===S.presDate).map(g=>g.round);S.presRound=rs[0]||null;}
+      renderPresentation();
+    }},tx(lbl));
+    tabs.appendChild(t);
+  });
+  overlay.appendChild(tabs);
+
+  // Selectors
+  if(S.presScope!=="season"){
+    const sels=el("div",{c:"pres-selectors"});
+    const dsel=el("select",{});
+    dates.forEach(d=>{const o=el("option",{value:d},tx(d));if(S.presDate===d)o.selected=true;dsel.appendChild(o);});
+    dsel.addEventListener("change",()=>{S.presDate=dsel.value;
+      if(S.presScope==="game"){const rs=games.filter(g=>g.date===S.presDate).map(g=>g.round);S.presRound=rs[0]||null;}
+      renderPresentation();
+    });
+    sels.appendChild(dsel);
+    if(S.presScope==="game"){
+      const rsel=el("select",{});
+      const rounds=games.filter(g=>g.date===S.presDate).map(g=>g.round).sort();
+      rounds.forEach(r=>{const o=el("option",{value:r},tx(`Игра №${r}`));if(parseInt(S.presRound)===r)o.selected=true;rsel.appendChild(o);});
+      rsel.addEventListener("change",()=>{S.presRound=rsel.value;renderPresentation();});
+      sels.appendChild(rsel);
+    }
+    overlay.appendChild(sels);
+  }
+
+  // List
+  const sorted=presentationStats();
+  if(!sorted.length){overlay.appendChild(el("div",{c:"pres-empty"},tx("Нет данных")));document.body.appendChild(overlay);return;}
+  const list=el("div",{c:"pres-list"});
+  sorted.forEach((p,i)=>{
+    const rk=i===0?"gold":i===1?"silver":i===2?"bronze":"";
+    const row=el("div",{c:`pres-row${rk?" "+rk:""}`});
+    row.appendChild(el("div",{c:`pres-rank${rk?" "+rk:""}`},tx(i+1)));
+    const mid=el("div",{c:"pres-mid"});
+    mid.appendChild(el("div",{c:"pres-name"},tx(p.name)));
+    const wpct=p.games?Math.round(p.wins/p.games*100):0;
+    mid.appendChild(el("div",{c:"pres-meta"},tx(`${p.games} игр · ${p.wins} побед · ${wpct}%`)));
+    row.appendChild(mid);
+    row.appendChild(el("div",{c:"pres-pts"},tx((p.pts>=0?"+":"")+p.pts.toFixed(1))));
+    list.appendChild(row);
+  });
+  overlay.appendChild(list);
+  document.body.appendChild(overlay);
+}
+
+function viewLB(){
+  const w=el("div",{});
+
+  // Header row with presentation button
+  const hdrRow=el("div",{c:"lb-header-row"});
+  const presBtn=el("button",{c:"lb-top-btn",onclick:()=>{
+    if(!S.presMode){S.presMode=true;S.presScope="season";S.presDate=null;S.presRound=null;}
+    renderPresentation();
+  }},[tx("📺 Показать")]);
+  hdrRow.appendChild(presBtn);
+  w.appendChild(hdrRow);
+
+  const st=getStats(S.filterDate);
+  const sorted=Object.values(st).filter(s=>s.games>0).sort((a,b)=>b.pts-a.pts);
+  const maxPts=Math.max(...sorted.map(s=>s.pts),1);
+  const dates=[...new Set(cs().games.map(g=>g.date))].sort().reverse();
+  const fb=el("div",{c:"fb"});
+  const dsel=el("select",{c:"fsel"});
+  dsel.appendChild(el("option",{value:""},tx("Все даты")));
+  dates.forEach(d=>{const o=el("option",{value:d},tx(`${d} (${cs().games.filter(g=>g.date===d).length})`));if(S.filterDate===d)o.selected=true;dsel.appendChild(o);});
+  dsel.addEventListener("change",()=>{S.filterDate=dsel.value||null;render();});
+  fb.appendChild(dsel);
+  if(S.filterDate)fb.appendChild(el("span",{c:"pill red",onclick:()=>{S.filterDate=null;render();}},tx(S.filterDate+" ×")));
+  w.appendChild(fb);
+  if(!sorted.length){w.appendChild(el("div",{c:"empty"},tx("Нет данных за этот период")));return w;}
+  sorted.forEach((s,i)=>{
+    const item=el("div",{c:"lb-item",onclick:()=>{S.selPlayer=s.name;S.view="players";render();}});
+    item.appendChild(el("div",{c:`lb-rank${i===0?" r1":i===1?" r2":i===2?" r3":""}`},tx(i+1)));
+    item.appendChild(av(s.name));
+    const mid=el("div",{c:"lb-mid"});
+    mid.appendChild(el("div",{c:"lb-name"},tx(s.name)));
+    const sub=el("div",{c:"lb-sub"});
+    // Top role(s): max rolePts where games>=2 and pts!=0; show all ties
+    const eligibleRoles=Object.entries(s.rolePts)
+      .filter(([role,pts])=>pts!==0 && (s.roles[role]||0)>=2);
+    if(eligibleRoles.length){
+      const maxPts2=Math.max(...eligibleRoles.map(([,p])=>p));
+      const topRoles=eligibleRoles.filter(([,p])=>p===maxPts2);
+      topRoles.forEach(([role])=>{
+        const rb2=document.createElement("span");rb2.className="rb";
+        rb2.style.cssText=`background:${roleColor(role)}18;color:${roleColor(role)};border:1px solid ${roleColor(role)}44;font-size:9px;padding:1px 5px`;
+        rb2.textContent=roleIcon(role)+" "+role;
+        sub.appendChild(rb2);
+      });
+      sub.appendChild(tx(" "));
+    }
+    sub.appendChild(tx(`${s.games} игр`));
+    mid.appendChild(sub);
+    const bt=el("div",{c:"bar-t"});bt.appendChild(el("div",{c:"bar-f",s:`width:${(s.pts/maxPts*100).toFixed(1)}%;background:${i===0?"#C9A84C":i<3?"#A0522D":"#9A9080"}`}));
+    mid.appendChild(bt);item.appendChild(mid);
+    const wc=s.wpct>=60?"var(--green)":s.wpct>=40?"var(--gold)":"var(--red)";
+    item.appendChild(el("div",{c:"wpct-col"},[el("div",{c:"wpct-val",s:`color:${wc}`},tx(`${s.wpct}%`)),el("div",{c:"wpct-lbl"},tx("ПОБЕД"))]));
+    item.appendChild(el("div",{s:"text-align:right"},[el("div",{c:"pts-big"},tx(s.pts.toFixed(1))),el("div",{c:"pts-lbl"},tx("БАЛЛОВ"))]));
+    w.appendChild(item);
+  });
+  return w;
+}
+
+function viewAdd(){
+  const isEdit=!!S.editGame;const eg=S.editGame;
+  if(!S.addEntries&&!isEdit)S.addEntries=Array.from({length:10},()=>({player:"",role:"Мирный житель",pts:0,bonus:0,result:"Победа"}));
+  const entries=isEdit?eg.entries.map(e=>({...e})):S.addEntries;
+  const now=new Date();
+  let dateV=isEdit?eg.date:`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
+  const w=el("div",{});
+  if(isEdit)w.appendChild(el("button",{c:"back",onclick:()=>{S.editGame=null;S.view="history";render();}},[el("span",{},"← "),tx("Назад")]));
+
+  const top=el("div",{c:"row",s:"margin-bottom:14px;gap:10px"});
+  const df=el("div",{c:"field",s:"flex:1;margin-bottom:0"});df.appendChild(el("label",{},tx("Дата")));
+  const di=el("input",{type:"text",placeholder:"ДД.ММ.ГГГГ"});di.value=dateV;di.addEventListener("input",()=>dateV=di.value);df.appendChild(di);top.appendChild(df);
+  const rf=el("div",{c:"field",s:"min-width:110px;margin-bottom:0"});rf.appendChild(el("label",{},tx("Раунд")));
+  const rs2=el("select",{});let roundV=isEdit?String(eg.round):"1";
+  [1,2,3,4].forEach(r=>{const o=el("option",{value:r},tx(`Игра №${r}`));if(String(r)===roundV)o.selected=true;rs2.appendChild(o);});
+  rs2.addEventListener("change",()=>roundV=rs2.value);rf.appendChild(rs2);top.appendChild(rf);w.appendChild(top);
+
+  const dl=el("datalist",{id:"pldl"});cs().players.forEach(p=>dl.appendChild(el("option",{value:p})));w.appendChild(dl);
+  const ew=el("div",{});
+
+  function autoCalcPts(i){
+    if(!entries[i])return;
+    const auto=calcPts(entries[i].role,entries[i].result,entries[i].bonus);
+    entries[i].pts=auto;
+    // update pts display if exists
+    const ptsEl=document.getElementById(`pts-display-${i}`);
+    if(ptsEl)ptsEl.textContent=(auto>0?"+":"")+auto;
+  }
+
+  function mkCard(i){
+    if(!entries[i])entries[i]={player:"",role:"Мирный житель",pts:0,bonus:0,result:"Победа"};
+    const card=el("div",{c:"ec"});
+    card.appendChild(el("div",{c:"ec-num"},tx(`Игрок ${i+1}`)));
+
+    const nf=el("div",{c:"field",s:"margin-bottom:8px"});nf.appendChild(el("label",{},tx("Имя")));
+    const ni=el("input",{type:"text",list:"pldl",placeholder:"Имя игрока..."});ni.value=entries[i].player;ni.addEventListener("input",()=>{entries[i].player=ni.value;});
+    nf.appendChild(ni);card.appendChild(nf);
+
+    const g=el("div",{c:"ec-grid",s:"margin-bottom:8px"});
+    const roleF=el("div",{c:"field",s:"margin-bottom:0"});roleF.appendChild(el("label",{},tx("Роль")));
+    const roleS=el("select",{});
+    // Group by team
+    const teams=[{key:"mafia",label:"── Мафия ──"},{key:"peaceful",label:"── Мирные ──"},{key:"third",label:"── Третья сила ──"}];
+    teams.forEach(team=>{
+      const og=document.createElement("optgroup");og.label=team.label;
+      ALL_ROLES.filter(r=>r.team===team.key).forEach(r=>{
+        const o=document.createElement("option");o.value=r.name;o.textContent=r.icon+" "+r.name;
+        if(r.name===entries[i].role)o.selected=true;og.appendChild(o);
+      });
+      roleS.appendChild(og);
+    });
+    roleS.style.color=roleColor(entries[i].role);
+    roleS.addEventListener("change",()=>{entries[i].role=roleS.value;roleS.style.color=roleColor(roleS.value);autoCalcPts(i);updatePtsDisplay(i);});
+    roleF.appendChild(roleS);g.appendChild(roleF);
+
+    const resF=el("div",{c:"field",s:"margin-bottom:0"});resF.appendChild(el("label",{},tx("Итог")));
+    const resS=el("select",{});["Победа","Поражение"].forEach(r=>{const o=el("option",{value:r},tx(r));if(r===entries[i].result)o.selected=true;resS.appendChild(o);});
+    resS.style.color=entries[i].result==="Победа"?"var(--green)":"var(--red)";
+    resS.addEventListener("change",()=>{entries[i].result=resS.value;resS.style.color=resS.value==="Победа"?"var(--green)":"var(--red)";autoCalcPts(i);updatePtsDisplay(i);});
+    resF.appendChild(resS);g.appendChild(resF);card.appendChild(g);
+
+    // Bonus + auto pts
+    const brow=el("div",{c:"ec-grid3"});
+    const bf=el("div",{c:"field",s:"margin-bottom:0"});bf.appendChild(el("label",{},tx("Доп. баллы")));
+    const bi=el("input",{type:"number",step:"0.5",s:"text-align:center"});bi.value=entries[i].bonus||0;
+    bi.addEventListener("input",()=>{entries[i].bonus=parseFloat(bi.value)||0;autoCalcPts(i);updatePtsDisplay(i);});
+    bf.appendChild(bi);brow.appendChild(bf);
+
+    const pf=el("div",{c:"field",s:"margin-bottom:0;grid-column:span 2"});pf.appendChild(el("label",{},tx("Итого баллов (авто)")));
+    autoCalcPts(i);
+    const pd=el("div",{id:`pts-display-${i}`,s:`height:42px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;border:1px solid var(--border2);border-radius:var(--r);background:var(--paper2);color:${entries[i].pts>0?"var(--gold)":entries[i].pts<0?"var(--red)":"var(--muted)"}`});
+    pd.textContent=(entries[i].pts>0?"+":"")+entries[i].pts;
+    pf.appendChild(pd);brow.appendChild(pf);
+    card.appendChild(brow);
+
+    function updatePtsDisplay(idx){
+      const auto=calcPts(entries[idx].role,entries[idx].result,entries[idx].bonus);
+      entries[idx].pts=auto;
+      const el2=document.getElementById(`pts-display-${idx}`);
+      if(el2){el2.textContent=(auto>0?"+":"")+auto;el2.style.color=auto>0?"var(--gold)":auto<0?"var(--red)":"var(--muted)";}
+    }
+
+    return card;
+  }
+  for(let i=0;i<entries.length;i++)ew.appendChild(mkCard(i));
+  w.appendChild(ew);
+
+  w.appendChild(el("button",{c:"btn ghost full",s:"margin-bottom:8px",onclick:()=>{
+    entries.push({player:"",role:"Мирный житель",pts:0,bonus:0,result:"Победа"});ew.appendChild(mkCard(entries.length-1));
+  }},tx("+ ещё игрок")));
+
+  const sb=el("button",{c:"btn red full",onclick:()=>{
+    const valid=entries.filter(e=>e&&e.player&&e.player.trim());if(!valid.length)return;
+    valid.forEach(e=>{if(!cs().players.includes(e.player.trim()))cs().players.push(e.player.trim());});
+    const gd={id:isEdit?eg.id:uid(),date:di.value,round:parseInt(rs2.value),entries:valid};
+    cs().games=cs().games.filter(g=>g.id!==gd.id&&!(g.date===gd.date&&g.round===gd.round));
+    cs().games.push(gd);S.editGame=null;S.addEntries=null;save();
+    sb.textContent="✓ Сохранено";sb.style.background="var(--green)";sb.style.borderColor="var(--green)";
+    setTimeout(()=>{
+      if(!isEdit){sb.textContent="Сохранить игру";sb.style.background="";sb.style.borderColor="";
+        S.addEntries=Array.from({length:10},()=>({player:"",role:"Мирный житель",pts:0,bonus:0,result:"Победа"}));
+        rs2.value=Math.min(parseInt(rs2.value)+1,4);ew.innerHTML="";
+        for(let i=0;i<S.addEntries.length;i++)ew.appendChild(mkCard(i));
+      }else{S.view="history";render();}
+    },1400);
+  }},tx(isEdit?"Сохранить изменения":"Сохранить игру"));
+  w.appendChild(sb);
+  if(isEdit)w.appendChild(el("button",{c:"btn ghost full",s:"margin-top:6px",onclick:()=>{S.editGame=null;S.view="history";render();}},tx("Отмена")));
+  return w;
+}
+
+function viewPlayers(){
+  if(S.selPlayer)return viewPlayer(S.selPlayer);
+  const st=getStats(null);const w=el("div",{});
+  if(IS_ADMIN){
+  const ar=el("div",{c:"row",s:"margin-bottom:14px"});
+  const ni=el("input",{type:"text",placeholder:"Добавить игрока...",s:"flex:1"});ar.appendChild(ni);
+  ar.appendChild(el("button",{c:"btn red",onclick:()=>{const n=ni.value.trim();if(n&&!cs().players.includes(n)){cs().players.push(n);save();ni.value="";render();}}},tx("+")));
+  w.appendChild(ar);
+  }
+  [...cs().players].sort((a,b)=>(st[b]?.pts||0)-(st[a]?.pts||0)).forEach(p=>{
+    const s=st[p];const card=el("div",{c:"pcard"});card.appendChild(av(p));
+    const mid=el("div",{c:"pcard-mid",onclick:()=>{S.selPlayer=p;render();}});
+    mid.appendChild(el("div",{c:"lb-name"},tx(p)));mid.appendChild(el("div",{c:"lb-sub"},tx(`${s?.games||0} игр · ${s?.dates?.length||0} дат`)));
+    card.appendChild(mid);
+    if(s?.games>0)card.appendChild(el("div",{s:"font-size:20px;font-weight:700;color:var(--gold);flex-shrink:0;min-width:48px;text-align:right"},tx(s.pts.toFixed(1))));
+    if(IS_ADMIN){
+    const acts=el("div",{c:"row",s:"flex-shrink:0;gap:4px"});
+    acts.appendChild(el("button",{c:"btn sm",onclick:(e)=>{e.stopPropagation();
+      const m=el("div",{c:"modal"});m.appendChild(el("div",{c:"modal-handle"}));m.appendChild(el("div",{c:"modal-title"},tx("Переименовать")));
+      const inp=el("input",{type:"text",s:"margin-bottom:14px"});inp.value=p;m.appendChild(inp);
+      m.appendChild(el("button",{c:"btn red full",onclick:()=>{const nv=inp.value.trim();if(!nv||nv===p){closeModal();return;}cs().players=cs().players.map(x=>x===p?nv:x);cs().games.forEach(g=>g.entries.forEach(e=>{if(e.player===p)e.player=nv;}));save();closeModal();}},tx("Сохранить")));
+      m.appendChild(el("button",{c:"btn ghost full",s:"margin-top:6px",onclick:closeModal},tx("Отмена")));showModal(m);
+    }},tx("✎")));
+    acts.appendChild(el("button",{c:"btn sm danger",onclick:(e)=>{e.stopPropagation();
+      const m=el("div",{c:"modal"});m.appendChild(el("div",{c:"modal-handle"}));m.appendChild(el("div",{c:"modal-title"},tx(`Удалить «${p}»?`)));
+      m.appendChild(el("div",{c:"modal-sub"},tx("Игрок будет удалён из состава. Записи в играх останутся.")));
+      m.appendChild(el("button",{c:"btn full",s:"background:var(--red);border-color:var(--red);color:#F5F0E8",onclick:()=>{cs().players=cs().players.filter(x=>x!==p);save();closeModal();}},tx("Удалить")));
+      m.appendChild(el("button",{c:"btn ghost full",s:"margin-top:6px",onclick:closeModal},tx("Отмена")));showModal(m);
+    }},tx("✕")));
+    card.appendChild(acts);
+    }
+    w.appendChild(card);
+  });
+  return w;
+}
+
+function viewPlayer(name){
+  const st=getStats(null);const s=st[name]||{pts:0,games:0,wins:0,roles:{},rolePts:{},dates:[],wpct:0};
+  const w=el("div",{});
+  w.appendChild(el("button",{c:"back",onclick:()=>{S.selPlayer=null;render();}},[el("span",{},"← "),tx("Все игроки")]));
+  const hdr=el("div",{c:"row",s:"margin-bottom:16px;gap:12px"});
+  hdr.appendChild(av(name,true));
+  hdr.appendChild(el("div",{},[el("div",{s:"font-size:20px;font-weight:700"},tx(name)),el("div",{s:"font-size:11px;color:var(--muted)"},tx(`${cs().name} · ${s.games} игр`))]));
+  w.appendChild(hdr);
+  const chips=el("div",{c:"metrics"});
+  [{l:"БАЛЛОВ",v:s.pts.toFixed(1),col:"var(--gold)"},{l:"ИГР",v:s.games},{l:"ПОБЕД",v:s.wins,col:"var(--green)"},{l:"% ПОБЕД",v:`${s.wpct}%`,col:s.wpct>=60?"var(--green)":s.wpct>=40?"var(--gold)":"var(--red)"}].forEach(({l,v,col})=>{
+    const c=el("div",{c:"metric"});const ve=el("div",{c:"v"},tx(v));if(col)ve.style.color=col;c.appendChild(ve);c.appendChild(el("div",{c:"l"},tx(l)));chips.appendChild(c);
+  });
+  w.appendChild(chips);
+  const byDate={};[...cs().games].sort((a,b)=>a.date.localeCompare(b.date)).forEach(g=>g.entries.forEach(e=>{if(e.player===name)byDate[g.date]=(byDate[g.date]||0)+(parseFloat(e.pts)||0);}));
+  const tl=[];let cum=0;Object.entries(byDate).forEach(([d,p])=>{cum+=p;tl.push({label:d,value:parseFloat(cum.toFixed(1))});});
+  if(tl.length>1){w.appendChild(slbl("Динамика баллов"));w.appendChild(lineChart(tl));}
+  const roleData=Object.entries(s.rolePts).sort((a,b)=>b[1]-a[1]);
+  if(roleData.length){
+    w.appendChild(slbl("Баллы по ролям"));
+    const rmax=Math.max(...roleData.map(([,p])=>Math.abs(p)),1);
+    roleData.forEach(([role,pts])=>{
+      const c=roleColor(role);const row=el("div",{c:"row",s:"margin-bottom:7px"});
+      const badge=document.createElement("span");badge.className="rb";badge.style.cssText=`background:${c}18;color:${c};border:1px solid ${c}44;min-width:130px`;badge.textContent=roleIcon(role)+" "+role;
+      const bt=el("div",{c:"bar-t",s:"flex:1"});bt.appendChild(el("div",{c:"bar-f",s:`width:${Math.max(0,pts/rmax*100).toFixed(1)}%;background:${c}`}));
+      row.appendChild(badge);row.appendChild(bt);
+      row.appendChild(el("span",{s:`font-size:12px;font-weight:600;min-width:34px;text-align:right;color:${pts>0?"var(--gold)":pts<0?"var(--red)":"var(--muted)"}`},tx(pts.toFixed(1))));
+      row.appendChild(el("span",{s:"font-size:10px;color:var(--muted);min-width:24px;text-align:right"},tx(`×${s.roles[role]||0}`)));
+      w.appendChild(row);
+    });
+  }
+  w.appendChild(slbl("История игр"));
+  cs().games.filter(g=>g.entries.some(e=>e.player===name)).sort((a,b)=>b.date.localeCompare(a.date)||a.round-b.round).forEach(g=>{
+    const e=g.entries.find(en=>en.player===name);if(!e)return;
+    const c=roleColor(e.role);
+    const card=el("div",{c:"hc",s:"margin-bottom:8px;cursor:pointer",onclick:()=>{S.selPlayer=null;S.view="history";S.filterDate=g.date;render();}});
+    const hh=el("div",{c:"hc-hdr"});
+    hh.appendChild(el("div",{c:"row",s:"gap:8px"},[el("span",{c:"hc-tag"},tx(`Игра №${g.round}`)),el("span",{c:"hc-date"},tx(g.date))]));
+    hh.appendChild(el("div",{c:"row",s:"gap:8px"},[el("span",{s:`font-size:13px;font-weight:700;color:${(parseFloat(e.pts)||0)>0?"var(--gold)":(parseFloat(e.pts)||0)<0?"var(--red)":"var(--muted)"}`},tx(`${(parseFloat(e.pts)||0)>0?"+":""}${parseFloat(e.pts)||0}`)),el("span",{s:`font-size:11px;color:${e.result==="Победа"?"var(--green)":"var(--red)"}`},tx(e.result))]));
+    card.appendChild(hh);
+    const rb2=document.createElement("div");rb2.style.cssText="padding:6px 12px;display:flex;gap:6px;align-items:center;border-bottom:1px solid var(--border2)";
+    const badge=document.createElement("span");badge.className="rb";badge.style.cssText=`background:${c}18;color:${c};border:1px solid ${c}44`;badge.textContent=roleIcon(e.role)+" "+e.role;rb2.appendChild(badge);
+    if(e.bonus)rb2.appendChild(el("span",{s:"font-size:11px;color:var(--muted)"},tx(`+ ${e.bonus} доп.`)));
+    card.appendChild(rb2);
+    const avrow=el("div",{c:"hc-avs"});g.entries.filter(en=>en.player!==name).forEach(en=>avrow.appendChild(nameChip(en.player,en.role)));
+    card.appendChild(el("div",{s:"padding:5px 12px 2px;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)"},tx("соигроки")));
+    card.appendChild(avrow);
+    w.appendChild(card);
+  });
+  return w;
+}
+
+function viewCharts(){
+  const w=el("div",{});
+  const tabs=[{id:"roleWin",l:"Победы"},{id:"rolePts",l:"Баллы ролей"},{id:"topPts",l:"Топ"},{id:"wpct",l:"% побед"}];
+  const tb=el("div",{c:"tabs"});tabs.forEach(t=>tb.appendChild(el("button",{c:`tab${S.chartTab===t.id?" on":""}`,onclick:()=>{S.chartTab=t.id;render();}},tx(t.l))));
+  w.appendChild(tb);
+  const st=getStats(null);
+  if(S.chartTab==="roleWin"){
+    const acc={};cs().games.forEach(g=>g.entries.forEach(e=>{if(!acc[e.role])acc[e.role]={w:0,t:0};acc[e.role].t++;if(e.result==="Победа")acc[e.role].w++;}));
+    const data=Object.entries(acc).map(([r,v])=>({label:roleIcon(r)+" "+r,value:Math.round(v.w/v.t*100),color:roleColor(r),suffix:"%"})).sort((a,b)=>b.value-a.value);
+    w.appendChild(barChart(data));
+  }else if(S.chartTab==="rolePts"){
+    const acc={};cs().games.forEach(g=>g.entries.forEach(e=>{acc[e.role]=(acc[e.role]||0)+(parseFloat(e.pts)||0);}));
+    const data=Object.entries(acc).map(([r,p])=>({label:roleIcon(r)+" "+r,value:parseFloat(p.toFixed(1)),color:roleColor(r)})).sort((a,b)=>b.value-a.value);
+    w.appendChild(barChart(data));
+  }else if(S.chartTab==="topPts"){
+    const top=Object.values(st).filter(s=>s.games>0).sort((a,b)=>b.pts-a.pts).slice(0,10);
+    w.appendChild(barChart(top.map((s,i)=>({label:s.name,value:s.pts,color:i===0?"#C9A84C":i<3?"#A0522D":"#6A6050"}))));
+  }else{
+    const top=Object.values(st).filter(s=>s.games>=2).sort((a,b)=>b.wpct-a.wpct).slice(0,10);
+    w.appendChild(barChart(top.map(s=>({label:s.name,value:s.wpct,color:s.wpct>=60?"#2D5A27":s.wpct>=40?"#8B6914":"#8B1A1A",suffix:"%"}))));
+  }
+  return w;
+}
+
+function viewHistory(){
+  const w=el("div",{});
+  const dates=[...new Set(cs().games.map(g=>g.date))].sort().reverse();
+  const fb=el("div",{c:"fb"});
+  const dsel=el("select",{c:"fsel"});
+  dsel.appendChild(el("option",{value:""},tx(`Все (${cs().games.length} игр)`)));
+  dates.forEach(d=>{const cnt=cs().games.filter(g=>g.date===d).length;const o=el("option",{value:d},tx(`${d} — ${cnt} игр`));if(S.filterDate===d)o.selected=true;dsel.appendChild(o);});
+  dsel.addEventListener("change",()=>{S.filterDate=dsel.value||null;render();});
+  fb.appendChild(dsel);
+  if(S.filterDate)fb.appendChild(el("span",{c:"pill red",onclick:()=>{S.filterDate=null;render();}},tx(S.filterDate+" ×")));
+  w.appendChild(fb);
+  const src=S.filterDate?cs().games.filter(g=>g.date===S.filterDate):cs().games;
+  [...src].sort((a,b)=>b.date.localeCompare(a.date)||a.round-b.round).forEach(g=>{
+    const card=el("div",{c:"hc"});
+    const hh=el("div",{c:"hc-hdr"});
+    hh.appendChild(el("div",{c:"row",s:"gap:8px"},[el("span",{c:"hc-tag"},tx(`Игра №${g.round}`)),el("span",{c:"hc-date"},tx(g.date)),el("span",{s:"font-size:10px;color:var(--muted)"},tx(`${g.entries.length} чел`))]));
+    if(IS_ADMIN){
+    const acts=el("div",{c:"row",s:"gap:4px"});
+    acts.appendChild(el("button",{c:"btn sm",onclick:()=>{S.editGame=JSON.parse(JSON.stringify(g));S.view="add";render();}},tx("✎")));
+    acts.appendChild(el("button",{c:"btn sm danger",onclick:()=>{
+      const m=el("div",{c:"modal"});m.appendChild(el("div",{c:"modal-handle"}));m.appendChild(el("div",{c:"modal-title"},tx("Удалить игру?")));
+      m.appendChild(el("div",{c:"modal-sub"},tx(`${g.date} · Игра №${g.round}`)));
+      m.appendChild(el("button",{c:"btn full",s:"background:var(--red);border-color:var(--red);color:#F5F0E8",onclick:()=>{cs().games=cs().games.filter(x=>x.id!==g.id);save();closeModal();}},tx("Удалить")));
+      m.appendChild(el("button",{c:"btn ghost full",s:"margin-top:6px",onclick:closeModal},tx("Отмена")));showModal(m);
+    }},tx("✕")));
+    hh.appendChild(acts);}card.appendChild(hh);
+    const avrow=el("div",{c:"hc-avs"});g.entries.forEach(e=>avrow.appendChild(nameChip(e.player,e.role)));card.appendChild(avrow);
+    g.entries.forEach((e,i)=>{
+      const pts=parseFloat(e.pts)||0;
+      const row=el("div",{c:"hc-row",s:`border-bottom:${i<g.entries.length-1?"1px solid var(--border2)":"none"}`});
+      row.appendChild(el("span",{s:"font-size:15px;font-weight:600;flex:1;min-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"},tx(e.player)));
+      const c=roleColor(e.role);const badge=document.createElement("span");badge.className="rb";badge.style.cssText=`background:${c}18;color:${c};border:1px solid ${c}44;font-size:9px;padding:1px 5px`;badge.textContent=roleIcon(e.role)+" "+e.role;row.appendChild(badge);
+      row.appendChild(el("span",{s:`font-size:13px;font-weight:700;color:${pts>0?"var(--gold)":pts<0?"var(--red)":"var(--muted)"}`},tx(`${pts>0?"+":""}${pts}`)));
+      row.appendChild(el("span",{s:`font-size:11px;color:${e.result==="Победа"?"var(--green)":"var(--red)"};min-width:62px;text-align:right`},tx(e.result)));
+      card.appendChild(row);
+    });
+    w.appendChild(card);
+  });
+  if(!src.length)w.appendChild(el("div",{c:"empty"},tx("Нет данных")));
+  return w;
+}
+
+function viewRules(){
+  const w=el("div",{});
+  const sections=[
+    { key:"mafia", title:"🖤 Команда Мафии", roles:ALL_ROLES.filter(r=>r.team==="mafia") },
+    { key:"peaceful", title:"❤️ Команда Мирных", roles:ALL_ROLES.filter(r=>r.team==="peaceful") },
+    { key:"third", title:"⚔️ Третья сила", roles:ALL_ROLES.filter(r=>r.team==="third") },
+  ];
+  sections.forEach(sec=>{
+    const collapsed=S.rulesCollapsed[sec.key];
+    const section=el("div",{c:"rules-section"});
+    const hdr=el("div",{c:`rules-section-hdr${collapsed?" collapsed":""}`,onclick:()=>{S.rulesCollapsed[sec.key]=!S.rulesCollapsed[sec.key];render();}});
+    hdr.appendChild(el("div",{c:"rules-section-title"},tx(sec.title)));
+    hdr.appendChild(el("div",{s:"font-size:16px;color:var(--muted)"},tx(collapsed?"▸":"▾")));
+    section.appendChild(hdr);
+    if(!collapsed){
+      const body=el("div",{c:"rules-section-body"});
+      sec.roles.forEach(role=>{
+        const card=el("div",{c:"role-card"});
+        const nameRow=el("div",{c:"role-card-name"});
+        nameRow.appendChild(tx(role.icon+" "));
+        nameRow.appendChild(el("span",{},tx(role.name)));
+        const teamBadge=document.createElement("span");
+        teamBadge.className="team-badge "+TEAMS[role.team].badge;
+        teamBadge.textContent=TEAMS[role.team].label;
+        nameRow.appendChild(teamBadge);
+        card.appendChild(nameRow);
+        card.appendChild(el("div",{c:"role-card-desc"},tx(role.desc)));
+        if(role.pts&&role.pts.length>0){
+          const table=el("table",{c:"pts-table"});
+          role.pts.forEach(([label,val])=>{
+            const num=parseFloat(val);
+            const cls=num>0?"pos":num<0?"neg":"";
+            table.appendChild(el("tr",{},[el("td",{},tx(label)),el("td",{c:cls},tx(val+" б"))]));
+          });
+          card.appendChild(table);
+        }
+        body.appendChild(card);
+      });
+      section.appendChild(body);
+    }
+    w.appendChild(section);
+  });
+
+  // Общее правило
+  w.appendChild(el("div",{c:"rules-section",s:"margin-top:6px"},[
+    el("div",{c:"rules-section-hdr",s:"cursor:default"},[el("div",{c:"rules-section-title"},tx("ℹ️ Общие правила баллов"))]),
+    el("div",{c:"rules-section-body"},[
+      el("div",{c:"role-card-desc",s:"line-height:1.7"},[
+        el("div",{s:"margin-bottom:6px"},tx("🏆 Если выбыл из игры, но твоя команда победила — победные баллы всё равно начисляются.")),
+        el("div",{s:"margin-bottom:6px"},tx("🎭 Лжешерифство (вскрытие за Шерифа) для любого члена Мафии: +1 балл.")),
+        el("div",{s:"margin-bottom:6px"},tx("🔪 Маньяк: Поражение в финале = 0.5 балла, один на один с Мафией = 0.")),
+        el("div",{},tx("💃 Мирные — баллы за отыгрыш роли вводятся вручную ведущим."))
+      ])
+    ])
+  ]));
+  return w;
+}
+
+function viewSettings(){
+  const w=el("div",{});
+  w.appendChild(slbl("Сезоны"));
+  S.seasons.forEach(season=>{
+    const row=el("div",{c:`season-row${season.id===S.activeSeason?" active-s":""}`});
+    const ni=el("input",{c:"sn-inp",type:"text"});ni.value=season.name;
+    ni.addEventListener("change",()=>{season.name=ni.value;save();if(season.id===S.activeSeason)render();});
+    row.appendChild(ni);
+    row.appendChild(el("span",{s:"font-size:10px;color:var(--muted);white-space:nowrap"},tx(`${season.games.length} игр`)));
+    if(S.seasons.length>1)row.appendChild(el("button",{c:"btn danger sm",onclick:()=>{
+      const m=el("div",{c:"modal"});m.appendChild(el("div",{c:"modal-handle"}));m.appendChild(el("div",{c:"modal-title"},tx("Удалить сезон?")));
+      m.appendChild(el("div",{c:"modal-sub"},tx(`«${season.name}» — ${season.games.length} игр будут удалены.`)));
+      m.appendChild(el("button",{c:"btn full",s:"background:var(--red);border-color:var(--red);color:#F5F0E8",onclick:()=>{S.seasons=S.seasons.filter(x=>x.id!==season.id);if(S.activeSeason===season.id)S.activeSeason=S.seasons[S.seasons.length-1].id;save();closeModal();}},tx("Удалить")));
+      m.appendChild(el("button",{c:"btn ghost full",s:"margin-top:6px",onclick:closeModal},tx("Отмена")));showModal(m);
+    }},tx("✕")));
+    w.appendChild(row);
+  });
+  w.appendChild(el("button",{c:"btn ghost full",s:"margin-top:10px",onclick:()=>{
+    const id=Math.max(...S.seasons.map(s=>s.id),0)+1;S.seasons.push({id,name:`Сезон ${id}`,players:[],games:[]});S.activeSeason=id;save();render();
+  }},tx("+ Новый сезон")));
+  w.appendChild(el("div",{c:"slbl",s:"margin-top:20px"},tx("Бэкап")));
+  [
+    ["⬇ Скачать JSON-бэкап", exportJSON],
+    ["⬆ Импортировать JSON", importJSON],
+  ].forEach(([label,fn])=>w.appendChild(el("button",{c:"btn ghost full",s:"margin-bottom:6px;justify-content:flex-start",onclick:fn},tx(label))));
+  return w;
+}
+
+// ── SYNC ─────────────────────────────────────────────────────────────────────
+const SYNC_KEY="mft_sync_url";
+let syncUrl=localStorage.getItem(SYNC_KEY)||SHEETS_URL||"";
+let syncState={status:"idle",msg:""};
+let showUrlSetup=false;
+
+function setSyncState(s,msg){syncState={status:s,msg};renderSyncBar();}
+
+function saveSyncUrl(url){syncUrl=url.trim();localStorage.setItem(SYNC_KEY,syncUrl);showUrlSetup=false;renderSyncBar();}
+
+async function syncToSheets(){
+  if(!syncUrl){showUrlSetup=true;renderSyncBar();return;}
+  setSyncState("loading","Сохраняю в Google Sheets...");
+  try{
+    await fetch(syncUrl,{method:"POST",body:JSON.stringify({action:"save",payload:{seasons:S.seasons,roles:S.roles,activeSeason:S.activeSeason}}),headers:{"Content-Type":"text/plain"}});
+    const now=new Date().toLocaleTimeString("ru");localStorage.setItem("mft_last_sync",now);
+    setSyncState("ok",`✓ Сохранено · ${now}`);
+  }catch(e){setSyncState("err","Ошибка: "+(e.message||"нет соединения"));}
+}
+
+async function syncFromSheets(){
+  if(!syncUrl){showUrlSetup=true;renderSyncBar();return;}
+  setSyncState("loading","Загружаю из Sheets...");
+  try{
+    const res=await fetch(syncUrl+"?t="+Date.now());const json=await res.json();
+    if(json.ok&&json.data){const d=json.data;S.seasons=d.seasons||S.seasons;S.roles=d.roles||S.roles;S.activeSeason=d.activeSeason||S.activeSeason;save();setSyncState("ok","✓ Загружено");render();}
+    else setSyncState("err",json.error||"Нет данных");
+  }catch(e){setSyncState("err","Ошибка: "+(e.message||"нет соединения"));}
+}
+
+function exportJSON(){
+  const blob=new Blob([JSON.stringify({seasons:S.seasons,roles:S.roles,activeSeason:S.activeSeason},null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mafia_backup_"+new Date().toISOString().slice(0,10)+".json";a.click();
+}
+
+function importJSON(){
+  const inp=document.createElement("input");inp.type="file";inp.accept=".json";
+  inp.addEventListener("change",()=>{const file=inp.files[0];if(!file)return;const reader=new FileReader();
+    reader.onload=(e)=>{try{const d=JSON.parse(e.target.result);if(!d.seasons)throw new Error("Неверный формат");S.seasons=d.seasons;S.roles=d.roles||S.roles;S.activeSeason=d.activeSeason||S.activeSeason;save();setSyncState("ok","✓ Импортировано");render();}catch(err){setSyncState("err","Ошибка: "+err.message);}};
+    reader.readAsText(file);});inp.click();
+}
+
+function renderSyncBar(){
+  const existing=document.getElementById("sync-area");if(existing)existing.remove();
+  const area=document.createElement("div");area.id="sync-area";area.style.cssText="flex-shrink:0";
+  if(showUrlSetup){
+    const setup=el("div",{c:"url-setup"});
+    const lbl=el("div",{s:"font-size:10px;color:#6A6050;letter-spacing:.07em;text-transform:uppercase;margin-bottom:6px"},tx("URL Google Apps Script"));
+    const inp=document.createElement("input");inp.placeholder="https://script.google.com/macros/s/.../exec";inp.value=syncUrl;
+    const brow=el("div",{c:"row"});
+    const sb=el("button",{c:"sync-btn primary",onclick:()=>saveSyncUrl(inp.value)},tx("Сохранить"));
+    const cb=el("button",{c:"sync-btn",onclick:()=>{showUrlSetup=false;renderSyncBar();}},tx("Отмена"));
+    brow.appendChild(sb);brow.appendChild(cb);
+    setup.appendChild(lbl);setup.appendChild(inp);setup.appendChild(brow);area.appendChild(setup);
+  }else{
+    const bar=el("div",{c:"sync-bar"});
+    const statusEl=el("div",{c:`sync-status${syncState.status==="ok"?" ok":syncState.status==="err"?" err":syncState.status==="loading"?" loading":""}`},tx(syncState.msg||(syncUrl?"☁ Sheets подключён":"☁ Sheets не настроен")));
+    bar.appendChild(statusEl);
+    if(syncState.status!=="loading"){
+      if(syncUrl)bar.appendChild(el("button",{c:"sync-btn primary",onclick:syncToSheets},tx("↑ Сохранить")));
+      if(syncUrl)bar.appendChild(el("button",{c:"sync-btn",onclick:syncFromSheets},tx("↓ Загрузить")));
+      bar.appendChild(el("button",{c:"sync-btn",onclick:()=>{
+        const m=el("div",{c:"modal"});m.appendChild(el("div",{c:"modal-handle"}));m.appendChild(el("div",{c:"modal-title"},tx("Синхронизация")));
+        [["↑ Сохранить в Sheets",syncToSheets],["↓ Загрузить из Sheets",syncFromSheets],["⬇ Скачать JSON",exportJSON],["⬆ Импортировать JSON",importJSON],["⚙ Настроить URL",()=>{showUrlSetup=true;renderSyncBar();}]].forEach(([l,fn])=>m.appendChild(el("button",{c:"btn ghost full",s:"margin-bottom:6px;justify-content:flex-start",onclick:()=>{closeModal();fn();}},tx(l))));
+        m.appendChild(el("button",{c:"btn ghost full",s:"margin-top:4px",onclick:closeModal},tx("Закрыть")));showModal(m);
+      }},tx("⋯")));
+    }
+    area.appendChild(bar);
+  }
+  const bnav=document.querySelector(".bnav");if(bnav)bnav.parentNode.insertBefore(area,bnav);
+}
+
+// ── ROOT ─────────────────────────────────────────────────────────────────────
+const NAV=[{id:"lb",l:"Рейтинг",ic:"🏆"},{id:"add",l:"Игра",ic:"🃏",admin:true},{id:"players",l:"Игроки",ic:"👥"},{id:"charts",l:"Графики",ic:"📊"},{id:"history",l:"История",ic:"📋"},{id:"rules",l:"Правила",ic:"📖"},{id:"settings",l:"Настройки",ic:"⚙️",admin:true}];
+
+function render(){
+  const root=document.getElementById("app");root.innerHTML="";
+  const season=cs();
+  const idx=S.seasons.findIndex(s=>s.id===S.activeSeason);
+
+  const hdr=el("div",{c:"hdr"});
+  hdr.appendChild(el("div",{c:"logo"},[document.createTextNode("Mafia "),el("em",{},"Tracker")]));
+  const sw=el("div",{c:"season-sw"});
+  const pb=el("button",{ariaLabel:"Предыдущий"});pb.textContent="‹";pb.addEventListener("click",()=>{if(idx>0){S.activeSeason=S.seasons[idx-1].id;S.filterDate=null;S.selPlayer=null;save();render();}});
+  const sn=el("div",{c:"s-name"});sn.textContent=season.name;
+  const nb=el("button",{ariaLabel:"Следующий"});nb.textContent="›";nb.addEventListener("click",()=>{if(idx<S.seasons.length-1){S.activeSeason=S.seasons[idx+1].id;S.filterDate=null;S.selPlayer=null;save();render();}});
+  const ab=el("button",{ariaLabel:"Новый",s:`border-left:1px solid #3C3428${IS_ADMIN?"":";display:none"}`});ab.textContent="+";ab.addEventListener("click",()=>{const id=Math.max(...S.seasons.map(s=>s.id),0)+1;S.seasons.push({id,name:`Сезон ${id}`,players:[],games:[]});S.activeSeason=id;S.filterDate=null;S.selPlayer=null;save();render();});
+  sw.appendChild(pb);sw.appendChild(sn);sw.appendChild(nb);sw.appendChild(ab);
+  hdr.appendChild(sw);root.appendChild(hdr);
+
+  const scroll=el("div",{c:"scroll-area"});
+  const content=el("div",{c:"content"});
+  const showMetrics=S.view!=="add"&&S.view!=="rules"&&!(S.view==="players"&&S.selPlayer);
+  if(showMetrics){
+    const tG=season.games.length,tD=new Set(season.games.map(g=>g.date)).size;
+    const m=el("div",{c:"metrics"});
+    [{l:"ИГРОКОВ",v:season.players.length},{l:"ИГР",v:tG},{l:"ДАТ",v:tD}].forEach(({l,v})=>{
+      const c=el("div",{c:"metric"});c.appendChild(el("div",{c:"v"},tx(v)));c.appendChild(el("div",{c:"l"},tx(l)));m.appendChild(c);
+    });
+    if(S.filterDate){const c=el("div",{c:"metric flt",onclick:()=>{S.filterDate=null;render();}});c.appendChild(el("div",{c:"v"},tx(S.filterDate)));c.appendChild(el("div",{c:"l"},tx("ФИЛЬТР · СНЯТЬ")));m.appendChild(c);}
+    content.appendChild(m);
+  }
+
+  if(S.view==="lb")content.appendChild(viewLB());
+  else if(S.view==="add")content.appendChild(viewAdd());
+  else if(S.view==="players")content.appendChild(viewPlayers());
+  else if(S.view==="charts")content.appendChild(viewCharts());
+  else if(S.view==="history")content.appendChild(viewHistory());
+  else if(S.view==="rules")content.appendChild(viewRules());
+  else if(S.view==="settings")content.appendChild(viewSettings());
+
+  scroll.appendChild(content);root.appendChild(scroll);
+
+  const nav=el("div",{c:"bnav"});
+  NAV.filter(n=>!n.admin||IS_ADMIN).forEach(n=>{
+    const b=el("button",{c:S.view===n.id?"act":""});
+    b.addEventListener("click",()=>{S.view=n.id;if(n.id!=="players")S.selPlayer=null;if(n.id!=="add")S.editGame=null;render();setTimeout(renderSyncBar,0);});
+    b.appendChild(el("div",{c:"ic"},tx(n.ic)));b.appendChild(document.createTextNode(n.l));nav.appendChild(b);
+  });
+  root.appendChild(nav);
+
+  if(S.modal){const ov=el("div",{c:"overlay"});ov.addEventListener("click",(e)=>{if(e.target===ov)closeModal();});ov.appendChild(S.modal);root.appendChild(ov);}
+
+  setTimeout(()=>{if(IS_ADMIN)renderSyncBar();},0);
+}
+
+load();render();
+if(!IS_ADMIN){autoLoadFromSheets();}
+if(IS_ADMIN&&SHEETS_URL){localStorage.setItem("mft_sync_url",SHEETS_URL);}
+</script>
+</body>
+</html>
