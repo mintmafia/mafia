@@ -552,13 +552,19 @@ function renderPresentation(){
     overlay.appendChild(sels);
   }
 
-  // List — auto-scale to fit screen
+  // List — scope-aware rendering
   const sorted=presentationStats();
   if(!sorted.length){overlay.appendChild(el("div",{c:"pres-empty"},tx("Нет данных")));document.body.appendChild(overlay);return;}
   const list=el("div",{c:"pres-list"});
   const count=sorted.length;
+  const needsFit=S.presScope==="day"||S.presScope==="game"; // fit on screen without scroll
 
-  // Render placeholder rows first
+  if(!needsFit){
+    // Season mode: scrollable, normal sizes
+    list.style.overflowY="auto";
+    list.style.webkitOverflowScrolling="touch";
+  }
+
   const rows=[];
   sorted.forEach((p,i)=>{
     const rk=i===0?"gold":i===1?"silver":i===2?"bronze":"";
@@ -571,44 +577,48 @@ function renderPresentation(){
     const metaEl=el("div",{c:"pres-meta"},tx(`${p.games} игр · ${p.wins} побед · ${wpct}%`));
     mid.appendChild(metaEl);
     row.appendChild(mid);
-    row.appendChild(el("div",{c:"pres-pts"},tx((p.pts>=0?"+":"")+p.pts.toFixed(1))));
+    const ptsEl=el("div",{c:"pres-pts"},tx((p.pts>=0?"+":"")+p.pts.toFixed(1)));
+    row.appendChild(ptsEl);
     list.appendChild(row);
-    rows.push({row,nameEl,metaEl});
+    rows.push({row,nameEl,metaEl,ptsEl});
   });
   overlay.appendChild(list);
   document.body.appendChild(overlay);
 
-  // Now measure and scale
-  requestAnimationFrame(()=>{
-    const listRect=list.getBoundingClientRect();
-    const availH=listRect.height;
-    const totalRowH=rows.reduce((sum,r)=>sum+r.row.getBoundingClientRect().height,0);
-    const totalGaps=(count-1)*6;
-
-    if(totalRowH+totalGaps>availH&&count>0){
-      // Need to shrink — calculate target row height
-      const targetRowH=Math.floor((availH-count*2)/count);
-      const isCompact=targetRowH<46;
-      const isTiny=targetRowH<32;
-      const fs=isTiny?Math.max(11,Math.floor(targetRowH*0.4)):isCompact?Math.max(13,Math.floor(targetRowH*0.38)):20;
-      const rankFs=isTiny?Math.max(11,Math.floor(targetRowH*0.42)):isCompact?Math.max(14,Math.floor(targetRowH*0.42)):26;
-      const ptsFs=isTiny?Math.max(11,Math.floor(targetRowH*0.42)):isCompact?Math.max(14,Math.floor(targetRowH*0.42)):26;
-      const padV=Math.max(2,Math.floor(targetRowH*0.1));
-      const gap=Math.max(1,Math.min(6,Math.floor((availH-targetRowH*count)/(count-1||1))));
+  // Scale day/game mode to fit screen
+  if(needsFit&&count>0){
+    requestAnimationFrame(()=>{
+      const availH=list.getBoundingClientRect().height;
+      // Target: all rows + gaps must fit in availH
+      const gap=Math.max(1,Math.min(4,Math.floor(availH*0.005)));
+      const totalGapH=gap*(count-1);
+      const targetRowH=Math.floor((availH-totalGapH)/count);
+      // Scale everything based on targetRowH
+      const padV=Math.max(1,Math.floor(targetRowH*0.08));
+      const contentH=targetRowH-padV*2;
+      // Font sizes proportional to content height
+      const fs=Math.max(9,Math.min(20,Math.floor(contentH*0.55)));
+      const rankFs=Math.max(9,Math.min(26,Math.floor(contentH*0.6)));
+      const ptsFs=Math.max(9,Math.min(26,Math.floor(contentH*0.6)));
+      const hideMeta=contentH<36;
 
       list.style.gap=gap+"px";
       rows.forEach(r=>{
-        r.row.style.padding=`${padV}px ${isCompact?8:18}px`;
-        r.row.style.gap=isCompact?"6px":"14px";
-        r.row.style.borderRadius=isCompact?"6px":"10px";
+        r.row.style.padding=`${padV}px ${fs<14?8:16}px`;
+        r.row.style.gap=fs<14?"6px":"12px";
+        r.row.style.borderRadius=fs<14?"4px":"10px";
+        r.row.style.minHeight="0";
         r.nameEl.style.fontSize=fs+"px";
+        r.nameEl.style.lineHeight="1.2";
         r.row.querySelector(".pres-rank").style.fontSize=rankFs+"px";
-        r.row.querySelector(".pres-pts").style.fontSize=ptsFs+"px";
-        r.row.querySelector(".pres-pts").style.minWidth=isCompact?"44px":"70px";
-        if(isCompact)r.metaEl.style.display="none";
+        r.row.querySelector(".pres-rank").style.minWidth=fs<14?"18px":"24px";
+        r.ptsEl.style.fontSize=ptsFs+"px";
+        r.ptsEl.style.minWidth=fs<14?"40px":"60px";
+        if(hideMeta)r.metaEl.style.display="none";
+        else r.metaEl.style.fontSize=Math.max(8,Math.floor(fs*0.55))+"px";
       });
-    }
-  });
+    });
+  }
   return;
 }
 
